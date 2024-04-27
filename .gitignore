@@ -1,0 +1,19 @@
+$ git status
+
+# Untracked files:
+data/config
+data/logs
+data/videos/
+data/trajectories/
+data/model_config/tmp_compilations
+GUI/config
+scripts/local/*
+logs/
+/**/*.asv
+README.md
+*.mat
+scripts/tutorials/T8_workspace_analysis_2.mlx
+
+# Python
+__pycache__/
+*.py[cod]
