@@ -1,7 +1,7 @@
 """
 Python Wrapper of CASPR
 Author: Mingrui Luo
-Version: 2024/04/26
+Version: 2024/05/03
 """
 import matlab.engine
 import numpy as np
@@ -34,6 +34,19 @@ class PYCASPR():
         self.eng.cd(wkspace+'/PYCASPR_core')
         self.eng.PYCASPR_init(modelname,cablename,nargout=0)
     
+    def _cal_w_ext(self,num,f_ext=None):
+        w_ext=np.zeros(num)
+        if f_ext is not None:
+            w_ext[:3]=f_ext[0]*np.array(f_ext[1]) # Force
+            r=np.array(f_ext[2])-np.array(f_ext[3])
+            w_ext[3:]=np.cross(r, w_ext[:3])[1:] # Torque
+        return w_ext
+    
+    def Get_bodies(self,link_id=[-1]):
+        Ps,Pg,Pe,Rot=self.eng.PYCASPR_get_bodies(nargout=4)
+        Ps,Pg,Pe,Rot=np.array(Ps),np.array(Pg),np.array(Pe),np.array(Rot)
+        return Ps[link_id].squeeze(),Pg[link_id].squeeze(),Pe[link_id].squeeze(),Rot[link_id].squeeze()
+    
     def Help_traj(self,trajname=None,q_p=None,q_dot=None,q_ddot=None,
                     te=None,dt=None,method_id=2):
         """Trajectory Loader or Interpolation"""
@@ -50,9 +63,9 @@ class PYCASPR():
             li2mat(q_p,True),li2mat(q_dot,True),li2mat(q_ddot,True),
             li2mat(np.linspace(0,te,q_p.shape[0])),dt,method_id,nargout=4)
         # Notice the array shape!
-        q,q_dot,q_ddot,tv=np.array(q).T,np.array(q_dot).T,np.array(q_dot).T,tv[0]
+        q,q_dot,q_ddot,tv=np.array(q).T,np.array(q_dot).T,np.array(q_ddot).T,tv[0]
         return q,q_dot,q_ddot,tv
-
+    
     def IK_update(self,q,qd=None,qdd=None):
         """Inverse Kinematics Solver"""
         if qd is None:
@@ -70,17 +83,17 @@ class PYCASPR():
         """Initialize Inverse Dynamics Solver"""
         self.eng.PYCASPR_init_ID(method_id,nargout=0)
     
-    def ID_update(self,q,qd=None,qdd=None):
+    def ID_update(self,q,qd=None,qdd=None,f_ext=None):
         """Inverse Dynamics Solver"""
         if qd is None:
             qd=np.zeros(len(q))
         if qdd is None:
             qdd=np.zeros(len(q))
+        w_ext=self._cal_w_ext(len(q),f_ext)
         # API
         forces,cablelengths,cableLengthsDot=self.eng.PYCASPR_ID(
-        li2mat(q),
-        li2mat(qd),
-        li2mat(qdd),nargout=3)
+        li2mat(q),li2mat(qd),li2mat(qdd),
+        li2mat(w_ext),nargout=3)
         return forces[0],cablelengths[0],cableLengthsDot[0]
     
     def FK_init(self,l0,q0,q0_dot=None,method_id=2):
@@ -110,9 +123,12 @@ class PYCASPR():
             q0_dot=np.zeros(len(q0))
         self.eng.PYCASPR_init_FD(method_id,
         li2mat(q0),li2mat(q0_dot),nargout=0)
+        self._data_FD_num=len(q0)
     
-    def FD_update(self,f,dt=0.1):
+    def FD_update(self,f,dt=0.1,f_ext=None):
         """Forward Dynamics Solver"""
+        w_ext=self._cal_w_ext(self._data_FD_num,f_ext)
         # API
-        q,q_dot,q_ddot,l,l_dot=self.eng.PYCASPR_FD(li2mat(f),dt,nargout=5)
-        return q[0],q_dot[0],q_ddot[0],l[0],l_dot[0]
+        q,q_dot,q_ddot,l,l_dot,segments=self.eng.PYCASPR_FD(li2mat(f),dt,
+        li2mat(w_ext),nargout=6)
+        return q[0],q_dot[0],q_ddot[0],l[0],l_dot[0],segments

@@ -1,7 +1,7 @@
 """
 Test Inverse Dynamics of PYCASPR
 Author: Mingrui Luo
-Version: 2024/04/26
+Version: 2024/05/03
 """
 import sys 
 sys.path.insert(0, sys.path[0]+"/../")
@@ -27,9 +27,11 @@ for t in range(len(tv)):
 t_ed=time.time()
 print('Time consuming: ',(t_ed-t_st)/len(tv))
 # Compare results
-plt.plot(np.array(forces_list))
+forces_list=np.array(forces_list)
+plt.figure('Results')
+plt.plot(forces_list)
 with open('PYCASPR_test/cable_forces.csv',encoding = 'utf-8') as f: 
     data_forces = np.loadtxt(f,float,delimiter = ",")
-plt.figure()
-plt.plot(data_forces.T)
+plt.figure('Errors')
+plt.plot(forces_list-data_forces.T)
 plt.show()

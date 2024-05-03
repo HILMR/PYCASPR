@@ -211,7 +211,9 @@ classdef (Abstract) JointBase < handle
 %                 case JointType.SPATIAL_QUATERNION
 %                     j = SpatialQuaternion;
                 case JointType.SPATIAL_EULER_XYZ
-                    j = SpatialEulerXYZ;                
+                    j = SpatialEulerXYZ;    
+                case JointType.SPATIAL_EULER_YZ
+                    j = SpatialEulerYZ;  
                 otherwise
                     CASPR_log.Print('Joint type is not defined', CASPRLogLevel.ERROR);
             end

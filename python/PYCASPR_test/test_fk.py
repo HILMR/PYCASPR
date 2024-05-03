@@ -1,7 +1,7 @@
 """
 Test Forward Kinematics of PYCASPR
 Author: Mingrui Luo
-Version: 2024/04/26
+Version: 2024/05/03
 """
 import sys 
 sys.path.insert(0, sys.path[0]+"/../")
@@ -27,5 +27,10 @@ for i in range(1,data_lengths.shape[1]):
 t_ed=time.time()
 print('Time consuming: ',(t_ed-t_st)/(data_lengths.shape[1]-1))
 # Plot
-plt.plot(np.array(q_list))
+plt.figure('Results')
+q_list=np.array(q_list)
+plt.plot(q_list)
+q,q_dot,q_ddot,tv=pycaspr.Help_traj('traj_processor_test')
+plt.figure('Errors')
+plt.plot(q_list-q)
 plt.show()

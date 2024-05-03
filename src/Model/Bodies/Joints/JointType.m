@@ -25,5 +25,7 @@ classdef JointType
         T_XYZ                   % Translational joint XYZ
 %         SPATIAL_QUATERNION      % T_XYZ + SPHERICAL
         SPATIAL_EULER_XYZ       % T_XYZ + S_EULER_XYZ
+%         NEW ADDED
+        SPATIAL_EULER_YZ       % T_XYZ + S_EULER_YZ
     end
 end
